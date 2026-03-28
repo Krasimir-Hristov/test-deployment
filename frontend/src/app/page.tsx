@@ -7,6 +7,7 @@ import {
   ExternalLink,
   RefreshCw,
   Radio,
+  FileDown,
 } from 'lucide-react';
 
 interface Article {
@@ -98,6 +99,15 @@ export default function Home() {
       setError('Неуспешна връзка с бекенда. Уверете се, че сървърът работи.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const downloadPDF = async () => {
+    try {
+      const url = `${BACKEND_URL}/news/pdf?category=${category}&country=us`;
+      window.open(url, '_blank');
+    } catch {
+      alert('Грешка при генериране на PDF');
     }
   };
 
@@ -196,7 +206,13 @@ export default function Home() {
 
         {/* Refresh button for latest */}
         {tab === 'latest' && (
-          <div className='flex justify-end mb-4'>
+          <div className='flex justify-end gap-4 mb-4'>
+            <button
+              onClick={() => downloadPDF()}
+              className='flex items-center gap-2 text-slate-500 hover:text-red-600 text-sm transition-colors'
+            >
+              <FileDown className='w-4 h-4' /> Свали PDF
+            </button>
             <button
               onClick={() => fetchLatest()}
               className='flex items-center gap-2 text-slate-500 hover:text-blue-600 text-sm transition-colors'
