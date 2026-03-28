@@ -2,17 +2,15 @@
 Модул за проксиране на новини от NewsAPI към фронтенд приложение.
 """
 
+import io
 import os
 import httpx
 import uvicorn
-import io
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from dotenv import load_dotenv
 from reportlab.lib.pagesizes import letter
-from reportlab.pdfgen import canvas
-from reportlab.lib.units import inch
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer
 
@@ -140,7 +138,7 @@ async def generate_news_pdf(category: str = "technology"):
         except Exception as e:
             raise HTTPException(
                 status_code=502, detail=f"Failed to fetch news for PDF: {str(e)}"
-            )
+            ) from e
 
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=letter)
