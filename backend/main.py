@@ -1,5 +1,10 @@
+"""
+Модул за проксиране на новини от NewsAPI към фронтенд приложение.
+"""
+
 import os
 import httpx
+import uvicorn
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
@@ -12,7 +17,7 @@ app = FastAPI(title="News Proxy API")
 # Конфигуриране на CORS за връзка с Фронтенда
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # В реална среда тук сложи URL-а на Vercel
+    allow_origins=["*"],  # В реална среда тук сложи URL-а на Vercel
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -21,9 +26,14 @@ app.add_middleware(
 NEWS_API_KEY = os.getenv("NEWS_API_KEY")
 NEWS_API_URL = "https://newsapi.org/v2"
 
+
 @app.get("/")
 def read_root():
+    """
+    Проверка на състоянието на API сървъра.
+    """
     return {"message": "Welcome to the News Proxy API!", "status": "online"}
+
 
 @app.get("/news/latest")
 async def get_latest_news(category: str = "technology", country: str = "us"):
@@ -32,7 +42,7 @@ async def get_latest_news(category: str = "technology", country: str = "us"):
     """
     if not NEWS_API_KEY:
         raise HTTPException(status_code=500, detail="NEWS_API_KEY is not set")
-    
+
     async with httpx.AsyncClient() as client:
         params = {
             "apiKey": NEWS_API_KEY,
@@ -46,7 +56,10 @@ async def get_latest_news(category: str = "technology", country: str = "us"):
             return response.json()
         except httpx.HTTPStatusError as e:
             error_detail = e.response.json().get("message", "Error from News API")
-            raise HTTPException(status_code=e.response.status_code, detail=error_detail)
+            raise HTTPException(
+                status_code=e.response.status_code, detail=error_detail
+            ) from e
+
 
 @app.get("/news/search")
 async def search_news(q: str = Query(..., min_length=1)):
@@ -55,13 +68,13 @@ async def search_news(q: str = Query(..., min_length=1)):
     """
     if not NEWS_API_KEY:
         raise HTTPException(status_code=500, detail="NEWS_API_KEY is not set")
-    
+
     async with httpx.AsyncClient() as client:
         params = {
             "apiKey": NEWS_API_KEY,
             "q": q,
             "sortBy": "publishedAt",
-            "pageSize": 10
+            "pageSize": 10,
         }
         try:
             response = await client.get(f"{NEWS_API_URL}/everything", params=params)
@@ -69,8 +82,37 @@ async def search_news(q: str = Query(..., min_length=1)):
             return response.json()
         except httpx.HTTPStatusError as e:
             error_detail = e.response.json().get("message", "Error from News API")
-            raise HTTPException(status_code=e.response.status_code, detail=error_detail)
+            raise HTTPException(
+                status_code=e.response.status_code, detail=error_detail
+            ) from e
+
+
+@app.get("/news/sources")
+async def get_sources(category: str = "technology", language: str = "en"):
+    """
+    Връща списък с наличните новинарски източници по категория и език.
+    """
+    if not NEWS_API_KEY:
+        raise HTTPException(status_code=500, detail="NEWS_API_KEY is not set")
+
+    async with httpx.AsyncClient() as client:
+        params = {
+            "apiKey": NEWS_API_KEY,
+            "category": category,
+            "language": language,
+        }
+        try:
+            response = await client.get(
+                f"{NEWS_API_URL}/top-headlines/sources", params=params
+            )
+            response.raise_for_status()
+            return response.json()
+        except httpx.HTTPStatusError as e:
+            error_detail = e.response.json().get("message", "Error from News API")
+            raise HTTPException(
+                status_code=e.response.status_code, detail=error_detail
+            ) from e
+
 
 if __name__ == "__main__":
-    import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
