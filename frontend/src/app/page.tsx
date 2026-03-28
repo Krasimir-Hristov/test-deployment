@@ -182,7 +182,7 @@ export default function Home() {
               placeholder='Търсете тема (напр. AI, climate, Ukraine)...'
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className='w-full pl-12 pr-36 py-4 rounded-2xl bg-white shadow ring-1 ring-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all'
+              className='w-full pl-12 pr-36 py-4 rounded-2xl bg-white text-slate-900 shadow ring-1 ring-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all'
             />
             <Search className='absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5' />
             <button
